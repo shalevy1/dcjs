@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>dc.js - Filtering Example</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
+</head>
+<body>
+
+<div class="container">
+<script type="text/javascript" ></script>
+    <div id="chart-ring-year"></div>
+    <div id="chart-row-spenders"></div>
+
+<script type="text/javascript" src="../js/d3.js"></script>
+<script type="text/javascript" src="../js/crossfilter.js"></script>
+<script type="text/javascript" src="../js/dc.js"></script>
+<script src="https://d3js.org/d3-array.v1.min.js"></script>
+<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+<script src="https://d3js.org/d3-color.v1.min.js"></script>
+<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+<script src="https://d3js.org/d3-time.v1.min.js"></script>
+<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+<script src="https://d3js.org/d3-scale.v2.min.js"></script>
+<script type="text/javascript">
+var x = d3.scaleLinear();
+var yearRingChart = dc.pieChart("#chart-ring-year"),
+    spenderRowChart = dc.rowChart("#chart-row-spenders");
+    
+var spendData = [
+    {Name: 'Cliente 1', valorFatura: '$40', Year: 2011},
+    {Name: 'Cliente 5', valorFatura: '$10', Year: 2011},
+    {Name: 'Cliente 1', valorFatura: '$40', Year: 2011},
+    {Name: 'Cliente 2', valorFatura: '$70', Year: 2012},
+    {Name: 'Cliente 3', valorFatura: '$20', Year: 2012},
+    {Name: 'Cliente 4', valorFatura: '$50', Year: 2014},
+    {Name: 'Cliente 5', valorFatura: '$30', Year: 2013},
+    {Name: 'Cliente 6', valorFatura: '$40', Year: 2012},
+    {Name: 'Cliente 7', valorFatura: '$10', Year: 2010},
+    {Name: 'Cliente 7', valorFatura: '$40', Year: 2012},
+    {Name: 'Cliente 6', valorFatura: '$70', Year: 2011},
+    {Name: 'Cliente 8', valorFatura: '$20', Year: 2012},
+    {Name: 'Cliente 9', valorFatura: '$50', Year: 2015},
+    {Name: 'Cliente 1', valorFatura: '$25', Year: 2018},
+    {Name: 'Cliente 1', valorFatura: '$50', Year: 2012},
+    {Name: 'Cliente 1', valorFatura: '$10', Year: 2011},
+    {Name: 'Cliente 1', valorFatura: '$40', Year: 2011},
+    {Name: 'Cliente 5', valorFatura: '$10', Year: 2011},
+    {Name: 'Cliente 1', valorFatura: '$40', Year: 2011},
+    {Name: 'Cliente 2', valorFatura: '$70', Year: 2012},
+    {Name: 'Cliente 3', valorFatura: '$20', Year: 2012},
+    {Name: 'Cliente 4', valorFatura: '$50', Year: 2014},
+    {Name: 'Cliente 5', valorFatura: '$30', Year: 2013},
+    {Name: 'Cliente 6', valorFatura: '$40', Year: 2012},
+    {Name: 'Cliente 7', valorFatura: '$10', Year: 2010},
+    {Name: 'Cliente 7', valorFatura: '$40', Year: 2012},
+    {Name: 'Cliente 6', valorFatura: '$70', Year: 2011},
+    {Name: 'Cliente 8', valorFatura: '$20', Year: 2012},
+    {Name: 'Cliente 9', valorFatura: '$50', Year: 2015},
+    {Name: 'Cliente 1', valorFatura: '$25', Year: 2018},
+    {Name: 'Cliente 1', valorFatura: '$50', Year: 2012},
+    {Name: 'Cliente 1', valorFatura: '$10', Year: 2011}
+];
+
+// normalize/parse data
+spendData.forEach(function(d) {
+    d.valorFatura = d.valorFatura.match(/\d+/);
+});
+function remove_empty_bins(source_group) {
+    return {
+        all:function () {
+            return source_group.all().filter(function(d) {
+                return d.value != 0;
+            });
+        }
+    };
+}
+
+var ndx = crossfilter(spendData),
+    yearDim  = ndx.dimension(function(d) {return +d.Year;}),
+    spendDim = ndx.dimension(function(d) {return Math.floor(d.valorFatura/10);}),
+    nameDim  = ndx.dimension(function(d) {return d.Name;}),
+    spendPerYear = yearDim.group().reduceSum(function(d) {return +d.valorFatura;}),
+    spendPerName = nameDim.group().reduceSum(function(d) {return +d.valorFatura;}),
+    spendHist    = spendDim.group().reduceCount(),
+    nonEmptyHist = remove_empty_bins(spendHist)
+    
+    yearRingChart
+        .width(400).height(200)
+        .dimension(yearDim)
+        .group(spendPerYear)
+        .innerRadius(50)
+        .slicesCap(10)
+        .legend(dc.legend());
+
+    spenderRowChart
+        .width(500).height(500)
+        .dimension(nameDim)
+        .group(spendPerName)
+        .elasticX(true);
+        
+    dc.renderAll();
+
+</script>
+
+</div>
+</body>
+</html>
